@@ -1,0 +1,101 @@
+import tkinter as tk
+from tkinter import messagebox
+import random
+import tkinter as tk
+from tkinter import messagebox
+from PIL import Image, ImageDraw
+
+# Initialize the main window
+root = tk.Tk()
+root.title("Word Puzzle Game")
+
+# Initialize pygame mixer
+import pygame
+pygame.mixer.init()
+
+# List of words to guess
+fruits = ['Pommes', 'Banane', 'Mangue', 'Framboise', 'Pêche', 'Abricot', 'Fraise', 'Raisin']
+animaux = ['Lion', 'Cheval', 'Souris', 'Chat', 'Chien']
+words = [fruits, animaux]
+
+# Word to guess
+current_word = random.choice(random.choice(words))
+
+# Function to check if the guessed word is correct
+def check_word():
+    guessed_word = entry.get().upper()
+    if guessed_word == current_word:
+        result_label.config(text="Bravo! Vous avez deviné le mot correctement.")
+    else:
+        result_label.config(text="Désolé, ce n'est pas le bon mot. Réessayez.")
+
+# Function to create a rounded frame
+def create_rounded_frame(width, height, corner_radius, background_color, border_color, border_width):
+    frame_image = Image.new("RGBA", (width, height), background_color)
+    draw = ImageDraw.Draw(frame_image)
+    draw.rounded_rectangle((0, 0, width - 1, height - 1), corner_radius, outline=border_color, width=border_width)
+    return frame_image
+
+# Function to generate a random word grid
+def generate_word_grid(words, rows, cols):
+    word_grid = [[' ' for _ in range(cols)] for _ in range(rows)]
+    for word in words:
+        direction = random.choice(['horizontal', 'vertical'])
+        if direction == 'horizontal':
+            row = random.randint(0, rows - 1)
+            col = random.randint(0, cols - len(word))
+            for i in range(len(word)):
+                word_grid[row][col + i] = word[i]
+        else:
+            row = random.randint(0, rows - len(word))
+            col = random.randint(0, cols - 1)
+            for i in range(len(word)):
+                word_grid[row + i][col] = word[i]
+    return word_grid
+
+# Function to handle clicking on a word in the grid
+def on_word_click(event):
+    x, y = event.x, event.y
+    col = x // cell_width
+    row = y // cell_height
+    word = ''
+    for i in range(row, rows):
+        if word_grid[i][col] != ' ':
+            word += word_grid[i][col]
+        else:
+            break
+    for i in range(row - 1, -1, -1):
+        if word_grid[i][col] != ' ':
+            word = word_grid[i][col] + word
+        else:
+            break
+    messagebox.showinfo("Mot trouvé", f"Vous avez trouvé le mot : {word}")
+
+# Initialize the main window
+root = tk.Tk()
+root.title("Word Puzzle Game")
+
+# Word grid parameters
+rows = 10
+cols = 10
+cell_width = 40
+cell_height = 40
+
+# Generate random word grid
+word_grid = generate_word_grid([current_word], rows, cols)
+
+# Create the canvas to display the word grid
+canvas = tk.Canvas(root, width=cols * cell_width, height=rows * cell_height)
+canvas.pack()
+
+# Display the word grid on the canvas
+for i in range(rows):
+    for j in range(cols):
+        canvas.create_rectangle(j * cell_width, i * cell_height, (j + 1) * cell_width, (i + 1) * cell_height, fill="white", outline="black")
+        canvas.create_text((j + 0.5) * cell_width, (i + 0.5) * cell_height, text=word_grid[i][j], font=("Arial", 10), tags="cell")
+
+# Bind click event to canvas
+canvas.bind("<Button-1>", on_word_click)
+
+# Initialize the main loop
+root.mainloop()
